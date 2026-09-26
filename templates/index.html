@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuoteWise — 100 Well-Known Quotes</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon">❝</span>
+        <div>
+          <h1>QuoteWise</h1>
+          <p class="tagline">Explore 100 timeless quotes across wisdom, science, philosophy, and life</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-counter" id="totalQuotesBadge">100 Quotes</span>
+      </div>
+    </header>
+
+    <!-- Featured Random Quote Section -->
+    <section class="hero-section">
+      <div class="section-title-wrap">
+        <span class="section-tag">Daily Inspiration</span>
+        <h2>Random Quote</h2>
+      </div>
+
+      <div class="featured-card" id="featuredQuoteCard">
+        <div class="quote-symbol">“</div>
+        <blockquote id="featuredQuoteText" class="featured-quote-text">
+          Loading inspiration...
+        </blockquote>
+        <div class="featured-meta">
+          <div class="author-info">
+            <span class="author-dash">—</span>
+            <span id="featuredAuthor" class="author-name">...</span>
+          </div>
+          <button id="featuredCategoryBadge" class="category-pill" title="Click to filter by this category">General</button>
+        </div>
+
+        <div class="featured-actions">
+          <button id="btnNewRandom" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            New Random Quote
+          </button>
+          <button id="btnCopyFeatured" class="btn btn-secondary" title="Copy quote to clipboard">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copy Quote
+          </button>
+          <button id="btnFilterByAuthor" class="btn btn-ghost" title="Find other quotes by this author">
+            More from this author &rarr;
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search & Filters Section -->
+    <section class="search-section">
+      <div class="section-title-wrap">
+        <span class="section-tag">Curated Library</span>
+        <h2>Search & Filter Quotes</h2>
+      </div>
+
+      <div class="filter-toolbar">
+        <!-- Search Input -->
+        <div class="search-bar">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Search by quote keywords or author name..." 
+            autocomplete="off"
+          />
+          <button id="btnClearSearch" class="btn-clear hidden" title="Clear search">&times;</button>
+        </div>
+
+        <!-- Author Filter Select -->
+        <div class="author-select-wrap">
+          <label for="authorSelect" class="sr-only">Filter by author</label>
+          <select id="authorSelect" class="select-control">
+            <option value="all">All Authors (Everyone)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="category-filters-container">
+        <label class="filter-label">Filter by Category:</label>
+        <div class="category-pills" id="categoryPills">
+          <button class="pill active" data-category="all">All</button>
+        </div>
+      </div>
+
+      <!-- Active Filters Summary Bar -->
+      <div class="active-filters-bar" id="activeFiltersBar">
+        <span class="results-count" id="resultsCount">Showing 100 quotes</span>
+        <button id="btnResetFilters" class="btn-reset-filters hidden">Reset Filters</button>
+      </div>
+    </section>
+
+    <!-- Quotes Results Grid -->
+    <main class="quotes-grid-section">
+      <div class="quotes-grid" id="quotesGrid">
+        <!-- Populated dynamically via app.js -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state hidden" id="emptyState">
+        <div class="empty-icon">🔍</div>
+        <h3>No matching quotes found</h3>
+        <p>Try searching for a different author, keyword, or clearing category filters.</p>
+        <button class="btn btn-secondary" id="btnEmptyReset">Reset all filters</button>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Built with <strong>Python Flask</strong> and <strong>Plain Vanilla JavaScript</strong> &bull; 100 Curated Well-Known Quotes</p>
+    </footer>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast" role="alert" aria-live="polite">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 6L9 17l-5-5"/>
+    </svg>
+    <span id="toastMessage">Quote copied to clipboard!</span>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
