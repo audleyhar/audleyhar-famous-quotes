@@ -1,7 +1,9 @@
+import csv
+import io
 import json
 import os
 import random
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, Response, jsonify, render_template, request
 
 app = Flask(__name__)
 
@@ -21,6 +23,27 @@ def load_quotes():
 QUOTES = load_quotes()
 
 
+def filter_quotes(query="", author_filter="", category_filter=""):
+    """Filter the in-memory quotes list based on query criteria."""
+    results = QUOTES
+
+    if category_filter and category_filter.lower() != "all":
+        results = [q for q in results if q["category"].lower() == category_filter.lower()]
+
+    if author_filter and author_filter.lower() != "all":
+        results = [q for q in results if author_filter.lower() in q["author"].lower()]
+
+    if query.strip():
+        q_clean = query.strip().lower()
+        results = [
+            q
+            for q in results
+            if q_clean in q["quote"].lower() or q_clean in q["author"].lower()
+        ]
+
+    return results
+
+
 @app.route("/")
 def index():
     """Serve the main HTML page."""
@@ -37,26 +60,37 @@ def get_quotes():
       - category: Filter by category (case-insensitive exact match)
     """
     query = request.args.get("search") or request.args.get("q", "")
-    author_filter = request.args.get("author", "").strip().lower()
-    category_filter = request.args.get("category", "").strip().lower()
+    author_filter = request.args.get("author", "").strip()
+    category_filter = request.args.get("category", "").strip()
 
-    results = QUOTES
-
-    if category_filter and category_filter != "all":
-        results = [q for q in results if q["category"].lower() == category_filter]
-
-    if author_filter and author_filter != "all":
-        results = [q for q in results if author_filter in q["author"].lower()]
-
-    if query.strip():
-        q_clean = query.strip().lower()
-        results = [
-            q
-            for q in results
-            if q_clean in q["quote"].lower() or q_clean in q["author"].lower()
-        ]
-
+    results = filter_quotes(query, author_filter, category_filter)
     return jsonify({"total": len(results), "quotes": results})
+
+
+@app.route("/api/quotes/export", methods=["GET"])
+def export_quotes_csv():
+    """
+    Export quotes matching query criteria as a CSV file.
+    Supports query parameters: search/q, author, category.
+    """
+    query = request.args.get("search") or request.args.get("q", "")
+    author_filter = request.args.get("author", "").strip()
+    category_filter = request.args.get("category", "").strip()
+
+    results = filter_quotes(query, author_filter, category_filter)
+
+    output = io.StringIO()
+    writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(["ID", "Quote", "Author", "Category"])
+    for q in results:
+        writer.writerow([q.get("id"), q.get("quote"), q.get("author"), q.get("category")])
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=quotes.csv"}
+    )
+
 
 
 @app.route("/api/quotes/random", methods=["GET"])

@@ -8,6 +8,7 @@
   // Application State
   const state = {
     featuredQuote: null,
+    currentQuotes: [],
     activeCategory: 'all',
     activeAuthor: 'all',
     searchQuery: '',
@@ -30,6 +31,7 @@
     categoryPills: document.getElementById('categoryPills'),
     resultsCount: document.getElementById('resultsCount'),
     btnResetFilters: document.getElementById('btnResetFilters'),
+    btnExportCSV: document.getElementById('btnExportCSV'),
     btnEmptyReset: document.getElementById('btnEmptyReset'),
     quotesGrid: document.getElementById('quotesGrid'),
     emptyState: document.getElementById('emptyState'),
@@ -56,9 +58,9 @@
   }
 
   /**
-   * Helper: Copy text to clipboard
+   * Helper: Copy text to clipboard with optional button visual feedback
    */
-  async function copyQuote(quote, author) {
+  async function copyQuote(quote, author, buttonEl = null) {
     const formatted = `"${quote}" — ${author}`;
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -73,12 +75,70 @@
         document.execCommand('copy');
         document.body.removeChild(textarea);
       }
+
+      if (buttonEl) {
+        const originalHTML = buttonEl.innerHTML;
+        buttonEl.classList.add('copied');
+        buttonEl.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>Copied!</span>
+        `;
+        setTimeout(() => {
+          buttonEl.classList.remove('copied');
+          buttonEl.innerHTML = originalHTML;
+        }, 1800);
+      }
+
       showToast('Quote copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy quote: ', err);
       showToast('Could not copy to clipboard');
     }
   }
+
+  /**
+   * Export currently displayed quotes to a downloadable CSV file
+   */
+  function exportQuotesToCSV() {
+    const quotes = state.currentQuotes || [];
+    if (quotes.length === 0) {
+      showToast('No quotes to export');
+      return;
+    }
+
+    const headers = ['ID', 'Quote', 'Author', 'Category'];
+    const rows = quotes.map(q => [
+      q.id,
+      `"${(q.quote || '').replace(/"/g, '""')}"`,
+      `"${(q.author || '').replace(/"/g, '""')}"`,
+      `"${(q.category || '').replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+
+    let filename = 'quotes';
+    if (state.activeCategory && state.activeCategory !== 'all') {
+      filename += `-${state.activeCategory.toLowerCase()}`;
+    }
+    if (state.activeAuthor && state.activeAuthor !== 'all') {
+      filename += `-${state.activeAuthor.toLowerCase().replace(/\s+/g, '_')}`;
+    }
+    link.download = `${filename}.csv`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast(`Exported ${quotes.length} quotes to CSV!`);
+  }
+
 
   /**
    * Fetch and display a random quote in the featured section
@@ -224,6 +284,7 @@
    * Render cards inside quotes grid
    */
   function renderQuotesGrid(quotes) {
+    state.currentQuotes = quotes;
     elements.quotesGrid.innerHTML = '';
 
     if (quotes.length === 0) {
@@ -254,30 +315,14 @@
         setCategory(item.category);
       });
 
-      const copyBtn = document.createElement('button');
-      copyBtn.className = 'card-btn-copy';
-      copyBtn.title = 'Copy quote';
-      copyBtn.setAttribute('aria-label', 'Copy quote');
-      copyBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-        </svg>
-      `;
-      copyBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        copyQuote(item.quote, item.author);
-      });
-
       cardTop.appendChild(catBadge);
-      cardTop.appendChild(copyBtn);
 
       // Quote Text
       const quoteText = document.createElement('p');
       quoteText.className = 'card-quote-text';
       quoteText.textContent = `"${item.quote}"`;
 
-      // Card Footer
+      // Card Footer with Author and prominent Copy to Clipboard button
       const cardFooter = document.createElement('div');
       cardFooter.className = 'card-footer';
 
@@ -289,9 +334,26 @@
         setAuthor(item.author);
       });
 
-      cardFooter.appendChild(authorLink);
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'card-btn-copy';
+      copyBtn.title = 'Copy quote to clipboard';
+      copyBtn.setAttribute('aria-label', 'Copy quote to clipboard');
+      copyBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        <span>Copy</span>
+      `;
+      copyBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        copyQuote(item.quote, item.author, copyBtn);
+      });
 
-      // Append elements
+      cardFooter.appendChild(authorLink);
+      cardFooter.appendChild(copyBtn);
+
+      // Assemble card
       card.appendChild(cardTop);
       card.appendChild(quoteText);
       card.appendChild(cardFooter);
@@ -301,6 +363,7 @@
 
     elements.quotesGrid.appendChild(fragment);
   }
+
 
   /**
    * Update results count and reset filters button visibility
@@ -380,9 +443,15 @@
     // Copy Featured button
     elements.btnCopyFeatured.addEventListener('click', () => {
       if (state.featuredQuote) {
-        copyQuote(state.featuredQuote.quote, state.featuredQuote.author);
+        copyQuote(state.featuredQuote.quote, state.featuredQuote.author, elements.btnCopyFeatured);
       }
     });
+
+    // Export to CSV button
+    if (elements.btnExportCSV) {
+      elements.btnExportCSV.addEventListener('click', exportQuotesToCSV);
+    }
+
 
     // Filter by featured author
     elements.btnFilterByAuthor.addEventListener('click', () => {

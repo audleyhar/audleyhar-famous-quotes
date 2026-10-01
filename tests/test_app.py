@@ -119,3 +119,27 @@ def test_get_authors(client):
     data = response.get_json()
     assert "authors" in data
     assert len(data["authors"]) > 10
+
+
+def test_export_quotes_csv_all(client):
+    """Test exporting all quotes to CSV."""
+    response = client.get("/api/quotes/export")
+    assert response.status_code == 200
+    assert "text/csv" in response.content_type
+    assert 'filename=quotes.csv' in response.headers.get("Content-Disposition", "")
+    lines = response.data.decode("utf-8").strip().splitlines()
+    assert lines[0] == "ID,Quote,Author,Category"
+    assert len(lines) == 101  # Header + 100 quotes
+
+
+def test_export_quotes_csv_filtered(client):
+    """Test exporting filtered quotes to CSV."""
+    response = client.get("/api/quotes/export?category=Science")
+    assert response.status_code == 200
+    assert "text/csv" in response.content_type
+    lines = response.data.decode("utf-8").strip().splitlines()
+    assert lines[0] == "ID,Quote,Author,Category"
+    assert len(lines) == 10  # Header + 9 Science quotes
+    for line in lines[1:]:
+        assert "Science" in line
+
