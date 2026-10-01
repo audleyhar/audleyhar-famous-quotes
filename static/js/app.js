@@ -33,12 +33,14 @@
     btnResetFilters: document.getElementById('btnResetFilters'),
     btnExportCSV: document.getElementById('btnExportCSV'),
     btnEmptyReset: document.getElementById('btnEmptyReset'),
+    themeToggleCheckbox: document.getElementById('themeToggleCheckbox'),
     quotesGrid: document.getElementById('quotesGrid'),
     emptyState: document.getElementById('emptyState'),
     toast: document.getElementById('toast'),
     toastMessage: document.getElementById('toastMessage'),
     totalQuotesBadge: document.getElementById('totalQuotesBadge')
   };
+
 
   /**
    * Helper: Show toast notification
@@ -505,9 +507,32 @@
   }
 
   /**
+   * Initialize Theme Switch & Preference Persistence
+   */
+  function initTheme() {
+    const savedTheme = localStorage.getItem('quotewise-theme');
+    const isLight = savedTheme === 'light';
+
+    if (elements.themeToggleCheckbox) {
+      elements.themeToggleCheckbox.checked = isLight;
+      elements.themeToggleCheckbox.addEventListener('change', (e) => {
+        const newTheme = e.target.checked ? 'light' : 'dark';
+        if (newTheme === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+        }
+        localStorage.setItem('quotewise-theme', newTheme);
+        showToast(`Switched to ${newTheme} mode`);
+      });
+    }
+  }
+
+  /**
    * Initialize App
    */
   async function init() {
+    initTheme();
     setupEventListeners();
     await Promise.all([
       fetchRandomQuote(),
@@ -524,3 +549,4 @@
     init();
   }
 })();
+

@@ -8,6 +8,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('quotewise-theme');
+      if (savedTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
 </head>
 <body>
   <div class="app-container">
@@ -20,8 +28,18 @@
           <p class="tagline">Explore 100 timeless quotes across wisdom, science, philosophy, and life</p>
         </div>
       </div>
-      <div class="header-badges">
+      <div class="header-controls">
         <span class="badge badge-counter" id="totalQuotesBadge">100 Quotes</span>
+        <!-- Color Scheme Toggle Switch -->
+        <div class="theme-switch-wrapper" title="Toggle dark / light mode">
+          <label class="theme-switch" for="themeToggleCheckbox">
+            <input type="checkbox" id="themeToggleCheckbox" aria-label="Toggle dark and light color scheme" />
+            <span class="theme-slider">
+              <span class="theme-icon icon-moon">🌙</span>
+              <span class="theme-icon icon-sun">☀️</span>
+            </span>
+          </label>
+        </div>
       </div>
     </header>
 
