@@ -34,12 +34,14 @@
     btnExportCSV: document.getElementById('btnExportCSV'),
     btnEmptyReset: document.getElementById('btnEmptyReset'),
     themeToggleCheckbox: document.getElementById('themeToggleCheckbox'),
+    btnBackToTop: document.getElementById('btnBackToTop'),
     quotesGrid: document.getElementById('quotesGrid'),
     emptyState: document.getElementById('emptyState'),
     toast: document.getElementById('toast'),
     toastMessage: document.getElementById('toastMessage'),
     totalQuotesBadge: document.getElementById('totalQuotesBadge')
   };
+
 
 
   /**
@@ -529,10 +531,33 @@
   }
 
   /**
+   * Initialize Floating Back to Top Button
+   */
+  function initBackToTop() {
+    if (!elements.btnBackToTop) return;
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 350) {
+        elements.btnBackToTop.classList.add('visible');
+      } else {
+        elements.btnBackToTop.classList.remove('visible');
+      }
+    }, { passive: true });
+
+    elements.btnBackToTop.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  }
+
+  /**
    * Initialize App
    */
   async function init() {
     initTheme();
+    initBackToTop();
     setupEventListeners();
     await Promise.all([
       fetchRandomQuote(),
@@ -541,6 +566,7 @@
       fetchQuotes()
     ]);
   }
+
 
   // Run on DOM ready
   if (document.readyState === 'loading') {

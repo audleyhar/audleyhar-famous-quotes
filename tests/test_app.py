@@ -31,12 +31,14 @@ def test_dataset_integrity():
 
 
 def test_index_page(client):
-    """Test that the homepage loads successfully and includes accessibility attributes."""
+    """Test that the homepage loads successfully and includes accessibility attributes and controls."""
     response = client.get("/")
     assert response.status_code == 200
     assert b"QuoteWise" in response.data
     assert b"Random Quote" in response.data
     assert b'aria-live="polite"' in response.data
+    assert b"btnBackToTop" in response.data
+
 
 
 

@@ -760,16 +760,62 @@ h2 {
   color: var(--text-muted);
 }
 
+/* Floating Back to Top Button */
+.btn-back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(16px);
+  transition: opacity 0.25s ease, transform 0.25s ease, background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+  z-index: 900;
+}
+
+.btn-back-to-top:hover {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-back-to-top:active {
+  transform: translateY(0);
+}
+
+.btn-back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.btn-back-to-top.visible:hover {
+  transform: translateY(-2px);
+}
+
 /* Toast */
 .toast {
   position: fixed;
   bottom: 2rem;
-  right: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
   background: var(--toast-bg);
   color: var(--toast-text);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
-  padding: 0.85rem 1.25rem;
+  padding: 0.85rem 1.35rem;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -777,10 +823,10 @@ h2 {
   font-size: 0.9rem;
   font-weight: 500;
   opacity: 0;
-  transform: translateY(20px);
   pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 1000;
+  white-space: nowrap;
 }
 
 .toast svg {
@@ -789,8 +835,9 @@ h2 {
 
 .toast.show {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(-50%) translateY(0);
 }
+
 
 /* Utility Helpers */
 .hidden {
